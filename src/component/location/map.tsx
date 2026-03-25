@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react"
-import { useKakao, useNaver } from "../store"
+import { useKakao, useKakaoMaps } from "../store"
 import nmapIcon from "../../icons/nmap-icon.png"
 import knaviIcon from "../../icons/knavi-icon.png"
 import tmapIcon from "../../icons/tmap-icon.png"
@@ -11,14 +11,9 @@ import {
   NMAP_PLACE_ID,
   WEDDING_HALL_POSITION,
 } from "../../const"
-import { NAVER_MAP_CLIENT_ID } from "../../env"
 
 export const Map = () => {
-  return NAVER_MAP_CLIENT_ID ? <NaverMap /> : <div>Map is not available</div>
-}
-
-const NaverMap = () => {
-  const naver = useNaver()
+  const kakaoMaps = useKakaoMaps()
   const kakao = useKakao()
   const ref = useRef<HTMLDivElement>(null)
   const [locked, setLocked] = useState(true)
@@ -37,19 +32,19 @@ const NaverMap = () => {
   }
 
   useEffect(() => {
-    if (naver) {
-      const map = new naver.maps.Map(ref.current, {
-        center: WEDDING_HALL_POSITION,
-        zoom: 17,
+    if (kakaoMaps && ref.current) {
+      const position = new kakaoMaps.LatLng(
+        WEDDING_HALL_POSITION[1],
+        WEDDING_HALL_POSITION[0],
+      )
+      const map = new kakaoMaps.Map(ref.current, {
+        center: position,
+        level: 3,
       })
 
-      new naver.maps.Marker({ position: WEDDING_HALL_POSITION, map })
-
-      return () => {
-        map.destroy()
-      }
+      new kakaoMaps.Marker({ position, map })
     }
-  }, [naver])
+  }, [kakaoMaps])
 
   return (
     <>
