@@ -35,6 +35,7 @@ export default defineConfig({
           GROOM_FULLNAME,
           BRIDE_FULLNAME,
           DESCRIPTION: `${WEDDING_DATE.format(WEDDING_DATE_FORMAT)} ${LOCATION}`,
+          BASE: base,
         },
       },
     }),
