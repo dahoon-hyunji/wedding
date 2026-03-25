@@ -1,9 +1,8 @@
 import {
   BRIDE_FULLNAME,
   GROOM_FULLNAME,
+  KMAP_PLACE_ID,
   LOCATION,
-  SHARE_ADDRESS,
-  SHARE_ADDRESS_TITLE,
   WEDDING_DATE,
   WEDDING_DATE_FORMAT,
 } from "../../const"
@@ -24,47 +23,37 @@ export const ShareButton = () => {
             return
           }
 
+          const siteUrl =
+            window.location.protocol +
+            "//" +
+            window.location.host +
+            baseUrl
+
           kakao.Share.sendDefault({
-            objectType: "location",
-            address: SHARE_ADDRESS,
-            addressTitle: SHARE_ADDRESS_TITLE,
+            objectType: "feed",
             content: {
               title: `${GROOM_FULLNAME} ❤️ ${BRIDE_FULLNAME}의 결혼식에 초대합니다.`,
               description:
                 WEDDING_DATE.format(WEDDING_DATE_FORMAT) + "\n" + LOCATION,
-              imageUrl:
-                window.location.protocol +
-                "//" +
-                window.location.host +
-                baseUrl +
-                "/preview_image.jpg",
+              imageUrl: siteUrl + "/preview_image.jpg",
               link: {
-                mobileWebUrl:
-                  window.location.protocol +
-                  "//" +
-                  window.location.host +
-                  baseUrl,
-                webUrl:
-                  window.location.protocol +
-                  "//" +
-                  window.location.host +
-                  baseUrl,
+                mobileWebUrl: siteUrl,
+                webUrl: siteUrl,
               },
             },
             buttons: [
               {
                 title: "초대장 보기",
                 link: {
-                  mobileWebUrl:
-                    window.location.protocol +
-                    "//" +
-                    window.location.host +
-                    baseUrl,
-                  webUrl:
-                    window.location.protocol +
-                    "//" +
-                    window.location.host +
-                    baseUrl,
+                  mobileWebUrl: siteUrl,
+                  webUrl: siteUrl,
+                },
+              },
+              {
+                title: "위치 보기",
+                link: {
+                  mobileWebUrl: `https://place.map.kakao.com/${KMAP_PLACE_ID}`,
+                  webUrl: `https://place.map.kakao.com/${KMAP_PLACE_ID}`,
                 },
               },
             ],
