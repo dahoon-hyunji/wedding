@@ -1,0 +1,114 @@
+# 모바일 청첩장 템플릿 | Wedding Invitation Template
+
+## 개요
+
+문다훈 ❤️ 오현지 모바일 청첩장입니다. React로 제작된 정적 웹사이트입니다.
+
+## 주요 기능
+
+- 📱 반응형 디자인 - 모바일과 데스크톱 모두 지원
+- ✨ 깔끔하고 모던한 UI
+- 🚀 GitHub Pages 간편 배포
+- 다양한 기능 지원
+  - 🎞️ 이미지 갤러리
+  - 🗺️ 웨딩홀 위치 지도 표시
+  - 💌 방명록 (오프라인 데이터 기반)
+  - 💬 카카오톡 공유
+
+## 사전 요구사항
+
+- Node.js (버전은 `.nvmrc` 파일에 명시)
+
+## 시작하기
+
+1. 저장소 복제:
+
+```bash
+git clone <저장소 URL>
+cd wedding
+```
+
+2. 의존성 설치:
+
+```bash
+npm install
+```
+
+3. 환경변수 설정:
+
+환경변수 샘플은 `.env.example` 파일에 저장되어 있습니다. 이 파일을 복사하여 `.env` 파일을 생성하고 각 환경변수를 수정합니다.
+
+```bash
+cp .env.example .env
+```
+
+- `VITE_NAVER_MAP_CLIENT_ID`
+  - 웨딩홀 위치를 표시하기 위한 네이버 지도 ID 발급
+  - Naver Cloud Platform에서 발급 가능 (Dynamic Map API)
+- `VITE_KAKAO_SDK_JS_KEY`
+  - 카카오톡 공유하기 기능을 위한 KAKAO SDK API 키
+  - Kakao Developers에서 발급 가능 (JavaScript Key)
+
+4. 개발 서버 실행:
+
+```bash
+npm run dev
+```
+
+## 커스터마이징
+
+1. `src/const.ts` 파일에서 웨딩 정보 수정:
+   - 신랑 신부 이름
+   - 결혼식 날짜
+   - 예식장 위치
+   - 연락처 및 축의금 계좌 정보
+
+2. 이미지 교체
+   - `src/images`: 표지 이미지 및 갤러리 이미지
+   - `public/preview_image.png`: SNS 공유용 미리보기 이미지
+   - 이미지 사이즈가 너무 크면 로딩 속도에 영향을 줄 수 있으므로, 적절한 크기로 리사이징 권장.
+     - 웨딩 촬영 스튜디오에서 제공하는 원본 사진은 고해상도이므로, 가로 세로 1000px 내외로 리사이징하는 것을 권장합니다.
+
+3. 글귀 수정
+   - `src/component/location`: 예식장 위치 관련 글귀 수정
+   - `src/component/information`: 식사 안내 글귀 수정
+   - 그 외 컴포넌트 디렉토리에서 관련 글귀 수정 가능
+
+4. 스타일 수정:
+   - SASS를 사용한 스타일링
+   - Root의 `font-size`가 window size에 따라 변경되므로, rem 단위를 사용하여 반응형 디자인 구현. 가능하면 px와 같은 절대 단위 사용 지양.
+
+## 배포하기
+
+### GitHub Pages 배포 방법
+
+1. 이 저장소를 본인의 GitHub 계정으로 Fork
+
+2. `package.json`의 `homepage` 필드를 본인의 GitHub Pages URL로 수정
+
+3. Fork된 저장소에서 GitHub Pages 배포 관련 설정
+   - Settings > Actions > General에서 "Workflow permissions"를 "Read and write permissions"로 설정
+   - Settings > Pages에서 "Build and deployment" 소스를 "GitHub Actions"로 설정
+
+4. Fork된 저장소의 Settings > Secrets and variables > Actions에서 환경변수 추가 (각 환경변수에 대한 설명은 위 환경변수 설정 참고)
+   - Secrets:
+     - `VITE_NAVER_MAP_CLIENT_ID`
+     - `VITE_KAKAO_SDK_JS_KEY`
+
+### 다른 호스팅 플랫폼
+
+이 프로젝트는 정적 웹사이트이므로 정적 파일을 제공하는 모든 플랫폼에서 호스팅할 수 있습니다.
+
+1. `package.json`의 `homepage` 필드를 본인의 호스팅 플랫폼 URL로 수정
+
+2. 환경변수 설정:
+   - 환경변수 설정 방법은 위 환경변수 설정 참고
+
+3. 프로젝트 빌드:
+
+```bash
+npm run build
+```
+
+4. `build` 디렉토리의 내용을 호스팅 플랫폼에 배포
+
