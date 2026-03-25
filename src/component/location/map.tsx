@@ -39,7 +39,7 @@ export const Map = () => {
       )
       const map = new kakaoMaps.Map(ref.current, {
         center: position,
-        level: 3,
+        level: 2,
       })
 
       new kakaoMaps.Marker({ position, map })
