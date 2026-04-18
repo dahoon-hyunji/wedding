@@ -61,7 +61,7 @@ export const BGM = () => {
     <>
       {showToast && (
         <div className="bgm-toast">
-          <span>화면을 터치하면 음악이 재생됩니다</span>
+          <span>배경음악이 재생됩니다</span>
         </div>
       )}
       {started && (
