@@ -4,8 +4,8 @@ import bgmUrl from "../../music/bgm.mp3"
 export const BGM = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const [playing, setPlaying] = useState(false)
-  const [showToast, setShowToast] = useState(false)
-  const [toastDismissed, setToastDismissed] = useState(false)
+  const [showToast, setShowToast] = useState(true)
+  const [started, setStarted] = useState(false)
 
   useEffect(() => {
     const audio = new Audio(bgmUrl)
@@ -13,57 +13,58 @@ export const BGM = () => {
     audio.volume = 0.3
     audioRef.current = audio
 
-    setShowToast(true)
-
     return () => {
       audio.pause()
     }
   }, [])
 
-  const play = useCallback(() => {
-    const audio = audioRef.current
-    if (!audio) return
-    audio.play()
-    setPlaying(true)
-  }, [])
+  useEffect(() => {
+    if (started) return
 
-  const pause = useCallback(() => {
-    const audio = audioRef.current
-    if (!audio) return
-    audio.pause()
-    setPlaying(false)
-  }, [])
+    const handleInteraction = () => {
+      const audio = audioRef.current
+      if (!audio) return
+      audio.play()
+      setPlaying(true)
+      setStarted(true)
+      setShowToast(false)
+    }
+
+    document.addEventListener("click", handleInteraction, { once: true })
+    document.addEventListener("touchstart", handleInteraction, { once: true })
+
+    return () => {
+      document.removeEventListener("click", handleInteraction)
+      document.removeEventListener("touchstart", handleInteraction)
+    }
+  }, [started])
+
+  useEffect(() => {
+    if (!showToast) return
+    const timer = setTimeout(() => setShowToast(false), 3000)
+    return () => clearTimeout(timer)
+  }, [showToast])
 
   const toggle = useCallback(() => {
+    const audio = audioRef.current
+    if (!audio) return
     if (playing) {
-      pause()
+      audio.pause()
+      setPlaying(false)
     } else {
-      play()
+      audio.play()
+      setPlaying(true)
     }
-  }, [playing, play, pause])
-
-  const handleToast = (accept: boolean) => {
-    setShowToast(false)
-    setToastDismissed(true)
-    if (accept) {
-      play()
-    }
-  }
+  }, [playing])
 
   return (
     <>
-      {showToast && !toastDismissed && (
+      {showToast && (
         <div className="bgm-toast">
-          <div className="bgm-toast-content">
-            <p>음악과 함께 청첩장을 감상하시겠습니까?</p>
-            <div className="bgm-toast-buttons">
-              <button onClick={() => handleToast(true)}>듣기</button>
-              <button onClick={() => handleToast(false)}>닫기</button>
-            </div>
-          </div>
+          <span>화면을 터치하면 음악이 재생됩니다</span>
         </div>
       )}
-      {toastDismissed && (
+      {started && (
         <button
           className={"bgm-toggle" + (playing ? " playing" : "")}
           onClick={toggle}
