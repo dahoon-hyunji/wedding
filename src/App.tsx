@@ -8,11 +8,13 @@ import { Gallery } from "./component/gallery"
 import { Information } from "./component/information"
 import { LazyDiv } from "./component/lazyDiv"
 import { ShareButton } from "./component/shareButton"
+import { BGM } from "./component/bgm"
 
 function App() {
   return (
     <div className="background">
       <BGEffect />
+      <BGM />
       <div className="card-view">
         <LazyDiv className="card-group">
           {/* 표지 */}

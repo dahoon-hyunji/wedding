@@ -1,0 +1,94 @@
+.bgm-toast {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: bgm-fade-in 0.3s ease;
+
+  .bgm-toast-content {
+    background: var(--white-color);
+    border-radius: 12px;
+    padding: 1.5rem 2rem;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+
+    p {
+      margin: 0 0 1rem;
+      font-size: 0.85rem;
+      line-height: 1.5;
+    }
+
+    .bgm-toast-buttons {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+
+      button {
+        padding: 0.4rem 1.5rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        cursor: pointer;
+        transition: opacity 0.2s;
+
+        &:first-child {
+          background: var(--theme-color);
+          color: var(--white-color);
+        }
+
+        &:last-child {
+          background: var(--light-grey-color);
+          color: var(--dark-color);
+        }
+
+        &:active {
+          opacity: 0.7;
+        }
+      }
+    }
+  }
+}
+
+.bgm-toggle {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 50;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: var(--white-color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: background 0.2s;
+  color: var(--dark-color);
+
+  &.playing {
+    color: var(--theme-color);
+  }
+
+  &:active {
+    opacity: 0.7;
+  }
+
+  @media print {
+    display: none;
+  }
+}
+
+@keyframes bgm-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
