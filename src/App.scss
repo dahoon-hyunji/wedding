@@ -211,3 +211,34 @@ h2 {
 div.break {
   height: 1rem;
 }
+
+.under-construction {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  z-index: 10;
+  position: relative;
+
+  p {
+    margin-top: 1.5rem;
+    font-size: 0.9rem;
+    opacity: 0.7;
+  }
+
+  .spinner {
+    width: 2rem;
+    height: 2rem;
+    border: 3px solid var(--light-grey-color);
+    border-top-color: var(--theme-color);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
