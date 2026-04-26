@@ -1,73 +1,132 @@
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { LazyDiv } from "../lazyDiv"
 import { GALLERY_IMAGES } from "../../images"
 
 const len = GALLERY_IMAGES.length
 const getIdx = (i: number) => ((i % len) + len) % len
 const GAP = 4
-const ITEM_RATIO = 0.88
+const RATIO = 0.88
+const SWIPE_THRESHOLD = 40
+const ANIM_DURATION = 300
 
 export const Gallery = () => {
-  const [current, setCurrent] = useState(0)
   const viewerRef = useRef<HTMLDivElement>(null)
-  const touchStartX = useRef(0)
-  const touchDeltaX = useRef(0)
-  const [swipeX, setSwipeX] = useState(0)
-  const [transitioning, setTransitioning] = useState(false)
+  const trackRef = useRef<HTMLDivElement>(null)
+  const currentRef = useRef(0)
+  const lockRef = useRef(false)
+  const touchRef = useRef({
+    startX: 0,
+    startY: 0,
+    deltaX: 0,
+    decided: false,
+    isSwiping: false,
+  })
+  const [current, setCurrent] = useState(0)
 
-  const getItemWidth = useCallback(() => {
-    const vw = viewerRef.current?.clientWidth || 0
-    return vw * ITEM_RATIO
-  }, [])
-
-  const getBaseOffset = useCallback(() => {
-    const vw = viewerRef.current?.clientWidth || 0
-    const iw = vw * ITEM_RATIO
+  const getViewerWidth = () => viewerRef.current?.clientWidth || 0
+  const getItemWidth = () => getViewerWidth() * RATIO
+  const getBaseOffset = () => {
+    const vw = getViewerWidth()
+    const iw = vw * RATIO
     return -(iw + GAP) + (vw - iw) / 2
+  }
+
+  const setTrackStyle = (offset: number, animate: boolean) => {
+    const track = trackRef.current
+    if (!track) return
+    track.style.transition = animate ? `transform ${ANIM_DURATION}ms ease` : "none"
+    track.style.transform = `translateX(${getBaseOffset() + offset}px)`
+  }
+
+  const slideTo = (dir: number) => {
+    if (lockRef.current) return
+    lockRef.current = true
+    const step = (getItemWidth() + GAP) * dir
+    setTrackStyle(-step, true)
+    setTimeout(() => {
+      const next = getIdx(currentRef.current + dir)
+      currentRef.current = next
+      setCurrent(next)
+      setTrackStyle(0, false)
+      lockRef.current = false
+    }, ANIM_DURATION)
+  }
+
+  // Position track on render and resize
+  useEffect(() => {
+    setTrackStyle(0, false)
+  }, [current])
+
+  useEffect(() => {
+    const onResize = () => setTrackStyle(0, false)
+    window.addEventListener("resize", onResize)
+    return () => window.removeEventListener("resize", onResize)
   }, [])
 
-  const goTo = (next: number) => {
-    const diff = next - current
-    const step = (getItemWidth() + GAP) * diff
-    setTransitioning(true)
-    setSwipeX(-step)
-    setTimeout(() => {
-      setTransitioning(false)
-      setSwipeX(0)
-      setCurrent(getIdx(next))
-    }, 300)
-  }
-
-  const onTouchStart = (e: React.TouchEvent) => {
-    if (transitioning) return
-    touchStartX.current = e.touches[0].clientX
-    touchDeltaX.current = 0
-  }
-
-  const onTouchMove = (e: React.TouchEvent) => {
-    if (transitioning) return
-    touchDeltaX.current = e.touches[0].clientX - touchStartX.current
-    setSwipeX(touchDeltaX.current)
-  }
-
-  const onTouchEnd = () => {
-    if (transitioning) return
-    if (touchDeltaX.current > 30) {
-      goTo(current - 1)
-    } else if (touchDeltaX.current < -30) {
-      goTo(current + 1)
-    } else {
-      setSwipeX(0)
-    }
-  }
-
-  const [baseOffset, setBaseOffset] = useState(0)
+  // Touch handlers via native listeners for passive: false
   useEffect(() => {
-    const update = () => setBaseOffset(getBaseOffset())
-    update()
-    window.addEventListener("resize", update)
-    return () => window.removeEventListener("resize", update)
-  }, [getBaseOffset])
+    const viewer = viewerRef.current
+    if (!viewer) return
+
+    const onTouchStart = (e: TouchEvent) => {
+      if (lockRef.current) return
+      touchRef.current = {
+        startX: e.touches[0].clientX,
+        startY: e.touches[0].clientY,
+        deltaX: 0,
+        decided: false,
+        isSwiping: false,
+      }
+    }
+
+    const onTouchMove = (e: TouchEvent) => {
+      if (lockRef.current) return
+      const t = touchRef.current
+      const dx = e.touches[0].clientX - t.startX
+      const dy = e.touches[0].clientY - t.startY
+
+      if (!t.decided) {
+        if (Math.abs(dx) > 8 || Math.abs(dy) > 8) {
+          t.decided = true
+          t.isSwiping = Math.abs(dx) > Math.abs(dy)
+        }
+        return
+      }
+
+      if (!t.isSwiping) return
+      e.preventDefault()
+      t.deltaX = dx
+      setTrackStyle(dx, false)
+    }
+
+    const onTouchEnd = () => {
+      if (lockRef.current) return
+      const t = touchRef.current
+      if (!t.isSwiping) return
+
+      if (t.deltaX > SWIPE_THRESHOLD) {
+        slideTo(-1)
+      } else if (t.deltaX < -SWIPE_THRESHOLD) {
+        slideTo(1)
+      } else {
+        // snap back
+        lockRef.current = true
+        setTrackStyle(0, true)
+        setTimeout(() => {
+          lockRef.current = false
+        }, ANIM_DURATION)
+      }
+    }
+
+    viewer.addEventListener("touchstart", onTouchStart)
+    viewer.addEventListener("touchmove", onTouchMove, { passive: false })
+    viewer.addEventListener("touchend", onTouchEnd)
+    return () => {
+      viewer.removeEventListener("touchstart", onTouchStart)
+      viewer.removeEventListener("touchmove", onTouchMove)
+      viewer.removeEventListener("touchend", onTouchEnd)
+    }
+  }, [])
 
   const prevIdx = getIdx(current - 1)
   const nextIdx = getIdx(current + 1)
@@ -75,17 +134,8 @@ export const Gallery = () => {
   return (
     <LazyDiv className="card gallery">
       <h2 className="english">Gallery</h2>
-      <div
-        className="gallery-viewer"
-        ref={viewerRef}
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
-      >
-        <div
-          className={`gallery-track${transitioning ? " transitioning" : ""}`}
-          style={{ transform: `translateX(${baseOffset + swipeX}px)` }}
-        >
+      <div className="gallery-viewer" ref={viewerRef}>
+        <div className="gallery-track" ref={trackRef}>
           {[prevIdx, current, nextIdx].map((idx, i) => (
             <div className="photo-item" key={`${idx}-${i}`}>
               <img

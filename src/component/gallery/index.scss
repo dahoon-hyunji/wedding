@@ -11,13 +11,9 @@
       display: flex;
       gap: 4px;
 
-      &.transitioning {
-        transition: transform 0.3s ease;
-      }
-
       .photo-item {
         flex: 0 0 88%;
-        aspect-ratio: 3 / 4;
+        //aspect-ratio: 3 / 4;
         overflow: hidden;
 
         img {
@@ -28,4 +24,5 @@
       }
     }
   }
+
 }

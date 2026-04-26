@@ -28,13 +28,9 @@ export const Cover = () => {
         <div className="divider" />
         {WEDDING_DATE.format("DD")}
       </div>
-      <div className="wedding-day-of-week">
-        {DAY_OF_WEEK[WEDDING_DATE.day()]}
-      </div>
       <div className="image-wrapper">
         <img src={COVER_IMAGE} alt="sample" />
       </div>
-      <div className="subtitle">Save the date for the wedding of</div>
       <div className="names">
         {GROOM_FULLNAME}
         <div className="divider" />
