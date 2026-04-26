@@ -8,16 +8,6 @@ import {
 import { COVER_IMAGE } from "../../images"
 import { LazyDiv } from "../lazyDiv"
 
-const DAY_OF_WEEK = [
-  "Sunday",
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-]
-
 export const Cover = () => {
   return (
     <LazyDiv className="card cover">
