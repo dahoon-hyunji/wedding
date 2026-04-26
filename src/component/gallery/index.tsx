@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react"
+import { createPortal } from "react-dom"
 import { LazyDiv } from "../lazyDiv"
 import { GALLERY_IMAGES } from "../../images"
 
@@ -6,125 +7,120 @@ const len = GALLERY_IMAGES.length
 const getIdx = (i: number) => ((i % len) + len) % len
 const GAP = 4
 const RATIO = 0.88
-const SWIPE_THRESHOLD = 40
-const ANIM_DURATION = 300
+const THRESHOLD = 40
+const TAP_THRESHOLD = 10
+const DURATION = 300
 
 export const Gallery = () => {
   const viewerRef = useRef<HTMLDivElement>(null)
   const trackRef = useRef<HTMLDivElement>(null)
-  const currentRef = useRef(0)
-  const lockRef = useRef(false)
-  const touchRef = useRef({
+  const state = useRef({
+    current: 0,
+    locked: false,
+    tracking: false,
     startX: 0,
-    startY: 0,
     deltaX: 0,
-    decided: false,
-    isSwiping: false,
   })
   const [current, setCurrent] = useState(0)
+  const [fullscreen, setFullscreen] = useState<number | null>(null)
 
-  const getViewerWidth = () => viewerRef.current?.clientWidth || 0
-  const getItemWidth = () => getViewerWidth() * RATIO
-  const getBaseOffset = () => {
-    const vw = getViewerWidth()
+  const getMetrics = () => {
+    const vw = viewerRef.current?.clientWidth || 0
     const iw = vw * RATIO
-    return -(iw + GAP) + (vw - iw) / 2
+    const base = -(iw + GAP) + (vw - iw) / 2
+    return { iw, base }
   }
 
-  const setTrackStyle = (offset: number, animate: boolean) => {
-    const track = trackRef.current
-    if (!track) return
-    track.style.transition = animate ? `transform ${ANIM_DURATION}ms ease` : "none"
-    track.style.transform = `translateX(${getBaseOffset() + offset}px)`
+  const setOffset = (px: number, animate: boolean) => {
+    const t = trackRef.current
+    if (!t) return
+    const { base } = getMetrics()
+    t.style.transition = animate ? `transform ${DURATION}ms ease` : "none"
+    t.style.transform = `translateX(${base + px}px)`
   }
 
-  const slideTo = (dir: number) => {
-    if (lockRef.current) return
-    lockRef.current = true
-    const step = (getItemWidth() + GAP) * dir
-    setTrackStyle(-step, true)
-    setTimeout(() => {
-      const next = getIdx(currentRef.current + dir)
-      currentRef.current = next
-      setCurrent(next)
-      setTrackStyle(0, false)
-      lockRef.current = false
-    }, ANIM_DURATION)
-  }
-
-  // Position track on render and resize
   useEffect(() => {
-    setTrackStyle(0, false)
+    setOffset(0, false)
   }, [current])
 
   useEffect(() => {
-    const onResize = () => setTrackStyle(0, false)
-    window.addEventListener("resize", onResize)
-    return () => window.removeEventListener("resize", onResize)
+    const h = () => setOffset(0, false)
+    window.addEventListener("resize", h)
+    return () => window.removeEventListener("resize", h)
   }, [])
 
-  // Touch handlers via native listeners for passive: false
   useEffect(() => {
-    const viewer = viewerRef.current
-    if (!viewer) return
+    const el = viewerRef.current
+    if (!el) return
 
-    const onTouchStart = (e: TouchEvent) => {
-      if (lockRef.current) return
-      touchRef.current = {
-        startX: e.touches[0].clientX,
-        startY: e.touches[0].clientY,
-        deltaX: 0,
-        decided: false,
-        isSwiping: false,
-      }
+    let animFrame = 0
+
+    const onStart = (e: TouchEvent) => {
+      const s = state.current
+      if (s.locked) return
+      s.tracking = true
+      s.startX = e.touches[0].clientX
+      s.deltaX = 0
     }
 
-    const onTouchMove = (e: TouchEvent) => {
-      if (lockRef.current) return
-      const t = touchRef.current
-      const dx = e.touches[0].clientX - t.startX
-      const dy = e.touches[0].clientY - t.startY
+    const onMove = (e: TouchEvent) => {
+      const s = state.current
+      if (!s.tracking || s.locked) return
+      s.deltaX = e.touches[0].clientX - s.startX
+      cancelAnimationFrame(animFrame)
+      animFrame = requestAnimationFrame(() => setOffset(s.deltaX, false))
+    }
 
-      if (!t.decided) {
-        if (Math.abs(dx) > 8 || Math.abs(dy) > 8) {
-          t.decided = true
-          t.isSwiping = Math.abs(dx) > Math.abs(dy)
-        }
+    const onEnd = () => {
+      const s = state.current
+      if (!s.tracking || s.locked) return
+      s.tracking = false
+      cancelAnimationFrame(animFrame)
+
+      // Tap detection: minimal movement = click
+      if (Math.abs(s.deltaX) < TAP_THRESHOLD) {
+        setCurrent((c) => {
+          setFullscreen(c)
+          return c
+        })
         return
       }
 
-      if (!t.isSwiping) return
-      e.preventDefault()
-      t.deltaX = dx
-      setTrackStyle(dx, false)
-    }
+      const { iw } = getMetrics()
+      const step = iw + GAP
 
-    const onTouchEnd = () => {
-      if (lockRef.current) return
-      const t = touchRef.current
-      if (!t.isSwiping) return
-
-      if (t.deltaX > SWIPE_THRESHOLD) {
-        slideTo(-1)
-      } else if (t.deltaX < -SWIPE_THRESHOLD) {
-        slideTo(1)
-      } else {
-        // snap back
-        lockRef.current = true
-        setTrackStyle(0, true)
+      if (Math.abs(s.deltaX) > THRESHOLD) {
+        const dir = s.deltaX > 0 ? -1 : 1
+        s.locked = true
+        setOffset(-step * dir, true)
         setTimeout(() => {
-          lockRef.current = false
-        }, ANIM_DURATION)
+          s.current = getIdx(s.current + dir)
+          setCurrent(s.current)
+          setOffset(0, false)
+          s.locked = false
+        }, DURATION)
+      } else {
+        setOffset(0, true)
       }
     }
 
-    viewer.addEventListener("touchstart", onTouchStart)
-    viewer.addEventListener("touchmove", onTouchMove, { passive: false })
-    viewer.addEventListener("touchend", onTouchEnd)
+    const onCancel = () => {
+      const s = state.current
+      s.tracking = false
+      cancelAnimationFrame(animFrame)
+      setOffset(0, true)
+    }
+
+    el.addEventListener("touchstart", onStart, { passive: true })
+    el.addEventListener("touchmove", onMove, { passive: true })
+    el.addEventListener("touchend", onEnd)
+    el.addEventListener("touchcancel", onCancel)
     return () => {
-      viewer.removeEventListener("touchstart", onTouchStart)
-      viewer.removeEventListener("touchmove", onTouchMove)
-      viewer.removeEventListener("touchend", onTouchEnd)
+      el.removeEventListener("touchstart", onStart)
+      el.removeEventListener("touchmove", onMove)
+      el.removeEventListener("touchend", onEnd)
+      el.removeEventListener("touchcancel", onCancel)
+      cancelAnimationFrame(animFrame)
     }
   }, [])
 
@@ -147,6 +143,28 @@ export const Gallery = () => {
           ))}
         </div>
       </div>
+
+      {fullscreen !== null &&
+        createPortal(
+          <div className="gallery-fullscreen">
+            <div
+              className="fullscreen-bg"
+              style={{ backgroundImage: `url(${GALLERY_IMAGES[fullscreen]})` }}
+            />
+            <img
+              src={GALLERY_IMAGES[fullscreen]}
+              alt={`${fullscreen}`}
+              draggable={false}
+            />
+            <button
+              className="fullscreen-close"
+              onClick={() => setFullscreen(null)}
+            >
+              &times;
+            </button>
+          </div>,
+          document.body,
+        )}
     </LazyDiv>
   )
 }
