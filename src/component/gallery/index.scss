@@ -4,24 +4,30 @@
     padding-right: 0 !important;
   }
 
-  .gallery-viewer {
-    overflow: hidden;
-    user-select: none;
+  .gallery-scroll {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scroll-padding: 0 6%;
+    padding: 0 6%;
 
-    .gallery-track {
-      display: flex;
-      gap: 4px;
+    // Hide scrollbar
+    &::-webkit-scrollbar {
+      display: none;
+    }
+    scrollbar-width: none;
 
-      .photo-item {
-        flex: 0 0 88%;
-        //aspect-ratio: 3 / 4;
-        overflow: hidden;
+    .gallery-item {
+      flex: 0 0 88%;
+      scroll-snap-align: center;
+      border-radius: 4px;
+      overflow: hidden;
 
-        img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-        }
+      img {
+        width: 100%;
+        display: block;
       }
     }
   }

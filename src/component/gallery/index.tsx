@@ -1,135 +1,127 @@
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef } from "react"
 import { LazyDiv } from "../lazyDiv"
 import { GALLERY_IMAGES } from "../../images"
 
-const len = GALLERY_IMAGES.length
-const getIdx = (i: number) => ((i % len) + len) % len
-const GAP = 4
-const RATIO = 0.88
-const THRESHOLD = 40
-const DURATION = 300
+const CLONE_COUNT = 1
 
 export const Gallery = () => {
-  const viewerRef = useRef<HTMLDivElement>(null)
-  const trackRef = useRef<HTMLDivElement>(null)
-  const state = useRef({
-    current: 0,
-    locked: false,
-    tracking: false,
-    startX: 0,
-    deltaX: 0,
-  })
-  const [current, setCurrent] = useState(0)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const isJumping = useRef(false)
 
-  const getMetrics = () => {
-    const vw = viewerRef.current?.clientWidth || 0
-    const iw = vw * RATIO
-    const base = -(iw + GAP) + (vw - iw) / 2
-    return { iw, base }
-  }
+  // Build items: [cloneLast, ...originals, cloneFirst]
+  const items = [
+    ...GALLERY_IMAGES.slice(-CLONE_COUNT),
+    ...GALLERY_IMAGES,
+    ...GALLERY_IMAGES.slice(0, CLONE_COUNT),
+  ]
 
-  const setOffset = (px: number, animate: boolean) => {
-    const t = trackRef.current
-    if (!t) return
-    const { base } = getMetrics()
-    t.style.transition = animate ? `transform ${DURATION}ms ease` : "none"
-    t.style.transform = `translateX(${base + px}px)`
-  }
-
-  useEffect(() => {
-    setOffset(0, false)
-  }, [current])
-
-  useEffect(() => {
-    const h = () => setOffset(0, false)
-    window.addEventListener("resize", h)
-    return () => window.removeEventListener("resize", h)
+  const getItemElements = useCallback(() => {
+    const el = scrollRef.current
+    if (!el) return []
+    return Array.from(el.children) as HTMLElement[]
   }, [])
 
+  const scrollToIndex = useCallback(
+    (index: number, behavior: ScrollBehavior = "instant") => {
+      const children = getItemElements()
+      if (!children[index]) return
+      children[index].scrollIntoView({
+        behavior,
+        block: "nearest",
+        inline: "center",
+      })
+    },
+    [getItemElements],
+  )
+
+  // Initialize scroll position to first real item
   useEffect(() => {
-    const el = viewerRef.current
+    // Small delay to ensure layout is ready
+    requestAnimationFrame(() => {
+      scrollToIndex(CLONE_COUNT, "instant")
+    })
+  }, [scrollToIndex])
+
+  // Detect when scroll lands on a clone and silently jump to the real item
+  const handleScrollEnd = useCallback(() => {
+    if (isJumping.current) return
+    const el = scrollRef.current
     if (!el) return
 
-    let animFrame = 0
+    const children = getItemElements()
+    const scrollCenter = el.scrollLeft + el.clientWidth / 2
 
-    const onStart = (e: TouchEvent) => {
-      const s = state.current
-      if (s.locked) return
-      s.tracking = true
-      s.startX = e.touches[0].clientX
-      s.deltaX = 0
+    // Find which item is closest to center
+    let closestIdx = 0
+    let closestDist = Infinity
+    children.forEach((child, i) => {
+      const childCenter = child.offsetLeft + child.offsetWidth / 2
+      const dist = Math.abs(scrollCenter - childCenter)
+      if (dist < closestDist) {
+        closestDist = dist
+        closestIdx = i
+      }
+    })
+
+    // If on a clone, jump to corresponding real item
+    if (closestIdx < CLONE_COUNT) {
+      // Left clone → jump to real item near end
+      isJumping.current = true
+      const realIdx = closestIdx + GALLERY_IMAGES.length
+      scrollToIndex(realIdx, "instant")
+      requestAnimationFrame(() => {
+        isJumping.current = false
+      })
+    } else if (closestIdx >= CLONE_COUNT + GALLERY_IMAGES.length) {
+      // Right clone → jump to real item near start
+      isJumping.current = true
+      const realIdx = closestIdx - GALLERY_IMAGES.length
+      scrollToIndex(realIdx, "instant")
+      requestAnimationFrame(() => {
+        isJumping.current = false
+      })
+    }
+  }, [getItemElements, scrollToIndex])
+
+  // Use scrollend event with fallback timer
+  useEffect(() => {
+    const el = scrollRef.current
+    if (!el) return
+
+    let timer = 0
+    const supportsScrollEnd = "onscrollend" in window
+
+    if (supportsScrollEnd) {
+      el.addEventListener("scrollend", handleScrollEnd)
     }
 
-    const onMove = (e: TouchEvent) => {
-      const s = state.current
-      if (!s.tracking || s.locked) return
-      s.deltaX = e.touches[0].clientX - s.startX
-      cancelAnimationFrame(animFrame)
-      animFrame = requestAnimationFrame(() => setOffset(s.deltaX, false))
-    }
-
-    const onEnd = () => {
-      const s = state.current
-      if (!s.tracking || s.locked) return
-      s.tracking = false
-      cancelAnimationFrame(animFrame)
-
-      const { iw } = getMetrics()
-      const step = iw + GAP
-
-      if (Math.abs(s.deltaX) > THRESHOLD) {
-        const dir = s.deltaX > 0 ? -1 : 1
-        s.locked = true
-        setOffset(-step * dir, true)
-        setTimeout(() => {
-          s.current = getIdx(s.current + dir)
-          setCurrent(s.current)
-          setOffset(0, false)
-          s.locked = false
-        }, DURATION)
-      } else {
-        setOffset(0, true)
+    const onScroll = () => {
+      if (!supportsScrollEnd) {
+        clearTimeout(timer)
+        timer = window.setTimeout(handleScrollEnd, 100)
       }
     }
 
-    const onCancel = () => {
-      const s = state.current
-      s.tracking = false
-      cancelAnimationFrame(animFrame)
-      setOffset(0, true)
-    }
+    el.addEventListener("scroll", onScroll, { passive: true })
 
-    el.addEventListener("touchstart", onStart, { passive: true })
-    el.addEventListener("touchmove", onMove, { passive: true })
-    el.addEventListener("touchend", onEnd)
-    el.addEventListener("touchcancel", onCancel)
     return () => {
-      el.removeEventListener("touchstart", onStart)
-      el.removeEventListener("touchmove", onMove)
-      el.removeEventListener("touchend", onEnd)
-      el.removeEventListener("touchcancel", onCancel)
-      cancelAnimationFrame(animFrame)
+      el.removeEventListener("scroll", onScroll)
+      if (supportsScrollEnd) {
+        el.removeEventListener("scrollend", handleScrollEnd)
+      }
+      clearTimeout(timer)
     }
-  }, [])
-
-  const prevIdx = getIdx(current - 1)
-  const nextIdx = getIdx(current + 1)
+  }, [handleScrollEnd])
 
   return (
     <LazyDiv className="card gallery">
       <h2 className="english">Gallery</h2>
-      <div className="gallery-viewer" ref={viewerRef}>
-        <div className="gallery-track" ref={trackRef}>
-          {[prevIdx, current, nextIdx].map((idx, i) => (
-            <div className="photo-item" key={`${idx}-${i}`}>
-              <img
-                src={GALLERY_IMAGES[idx]}
-                alt={`${idx}`}
-                draggable={false}
-              />
-            </div>
-          ))}
-        </div>
+      <div className="gallery-scroll" ref={scrollRef}>
+        {items.map((src, i) => (
+          <div className="gallery-item" key={i}>
+            <img src={src} alt={`gallery-${i}`} draggable={false} />
+          </div>
+        ))}
       </div>
     </LazyDiv>
   )
