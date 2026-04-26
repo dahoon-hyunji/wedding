@@ -10,8 +10,8 @@
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
-    scroll-padding: 0 6%;
-    padding: 0 6%;
+    scroll-padding: 0 2%;
+    padding: 0 2%;
 
     // Hide scrollbar
     &::-webkit-scrollbar {
@@ -20,9 +20,8 @@
     scrollbar-width: none;
 
     .gallery-item {
-      flex: 0 0 88%;
+      flex: 0 0 92%;
       scroll-snap-align: center;
-      border-radius: 4px;
       overflow: hidden;
 
       img {
