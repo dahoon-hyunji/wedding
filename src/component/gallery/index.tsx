@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { createPortal } from "react-dom"
 import { LazyDiv } from "../lazyDiv"
 import { GALLERY_IMAGES } from "../../images"
 
@@ -20,18 +21,20 @@ export const Gallery = () => {
         ))}
       </div>
 
-      {selectedIdx !== null && (
-        <div
-          className="gallery-fullscreen"
-          onClick={() => setSelectedIdx(null)}
-        >
-          <img
-            src={GALLERY_IMAGES[selectedIdx]}
-            alt={`${selectedIdx}`}
-            draggable={false}
-          />
-        </div>
-      )}
+      {selectedIdx !== null &&
+        createPortal(
+          <div
+            className="gallery-fullscreen"
+            onClick={() => setSelectedIdx(null)}
+          >
+            <img
+              src={GALLERY_IMAGES[selectedIdx]}
+              alt={`${selectedIdx}`}
+              draggable={false}
+            />
+          </div>,
+          document.body,
+        )}
     </LazyDiv>
   )
 }
