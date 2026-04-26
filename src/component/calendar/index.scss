@@ -77,11 +77,10 @@
       }
       .count {
         opacity: 0.8;
-        font-weight: bold;
+        font-weight: normal;
         font-size: 1.2rem;
       }
       .unit {
-        font-weight: bold;
         font-size: 0.6rem;
         opacity: 0.5;
       }
@@ -92,6 +91,7 @@
       margin-bottom: 1.5rem;
       .d-day {
         color: var(--theme-color);
+        font-weight: bold;
       }
     }
   }

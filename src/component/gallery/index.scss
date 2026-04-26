@@ -1,46 +1,31 @@
 .gallery {
-  .gallery-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.3rem;
-    padding: 0 0.5rem;
-
-    .gallery-item {
-      aspect-ratio: 3 / 4;
-      overflow: hidden;
-      cursor: pointer;
-
-      img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform 0.2s ease;
-      }
-
-      &:active img {
-        transform: scale(1.05);
-      }
-    }
+  &.card {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
   }
 
-}
+  .gallery-viewer {
+    overflow: hidden;
 
-.gallery-fullscreen {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.9);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  cursor: pointer;
+    .gallery-track {
+      display: flex;
+      gap: 4px;
 
-  img {
-    max-width: 95%;
-    max-height: 90%;
-    object-fit: contain;
+      &.transitioning {
+        transition: transform 0.3s ease;
+      }
+
+      .photo-item {
+        flex: 0 0 88%;
+        aspect-ratio: 3 / 4;
+        overflow: hidden;
+
+        img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+      }
+    }
   }
 }
