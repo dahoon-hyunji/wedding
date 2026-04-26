@@ -1,10 +1,10 @@
 import { Fragment } from "react/jsx-runtime"
 import {
-  BRIDE_FULLNAME,
+  BRIDE_FIRSTNAME,
   BRIDE_INFO,
   BRIDE_FATHER,
   BRIDE_MOTHER,
-  GROOM_FULLNAME,
+  GROOM_FIRSTNAME,
   GROOM_INFO,
   GROOM_FATHER,
   GROOM_MOTHER,
@@ -43,14 +43,14 @@ export const Invitation = () => {
         <span className="relation">
           의 <span className="relation-name">{GROOM_TITLE}</span>
         </span>{" "}
-        {GROOM_FULLNAME}
+        {GROOM_FIRSTNAME}
       </div>
       <div className="name">
         {BRIDE_FATHER} · {BRIDE_MOTHER}
         <span className="relation">
           의 <span className="relation-name">{BRIDE_TITLE}</span>
         </span>{" "}
-        {BRIDE_FULLNAME}
+        {BRIDE_FIRSTNAME}
       </div>
 
       <div className="break" />
