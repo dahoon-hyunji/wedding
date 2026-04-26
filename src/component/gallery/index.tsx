@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react"
-import { createPortal } from "react-dom"
 import { LazyDiv } from "../lazyDiv"
 import { GALLERY_IMAGES } from "../../images"
 
@@ -8,7 +7,6 @@ const getIdx = (i: number) => ((i % len) + len) % len
 const GAP = 4
 const RATIO = 0.88
 const THRESHOLD = 40
-const TAP_THRESHOLD = 10
 const DURATION = 300
 
 export const Gallery = () => {
@@ -22,7 +20,6 @@ export const Gallery = () => {
     deltaX: 0,
   })
   const [current, setCurrent] = useState(0)
-  const [fullscreen, setFullscreen] = useState<number | null>(null)
 
   const getMetrics = () => {
     const vw = viewerRef.current?.clientWidth || 0
@@ -76,15 +73,6 @@ export const Gallery = () => {
       if (!s.tracking || s.locked) return
       s.tracking = false
       cancelAnimationFrame(animFrame)
-
-      // Tap detection: minimal movement = click
-      if (Math.abs(s.deltaX) < TAP_THRESHOLD) {
-        setCurrent((c) => {
-          setFullscreen(c)
-          return c
-        })
-        return
-      }
 
       const { iw } = getMetrics()
       const step = iw + GAP
@@ -143,28 +131,6 @@ export const Gallery = () => {
           ))}
         </div>
       </div>
-
-      {fullscreen !== null &&
-        createPortal(
-          <div className="gallery-fullscreen">
-            <div
-              className="fullscreen-bg"
-              style={{ backgroundImage: `url(${GALLERY_IMAGES[fullscreen]})` }}
-            />
-            <img
-              src={GALLERY_IMAGES[fullscreen]}
-              alt={`${fullscreen}`}
-              draggable={false}
-            />
-            <button
-              className="fullscreen-close"
-              onClick={() => setFullscreen(null)}
-            >
-              &times;
-            </button>
-          </div>,
-          document.body,
-        )}
     </LazyDiv>
   )
 }
