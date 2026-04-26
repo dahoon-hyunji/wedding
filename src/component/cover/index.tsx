@@ -23,7 +23,7 @@ export const Cover = () => {
       </div>
       <div className="names">
         {GROOM_FULLNAME}
-        <div className="divider" />
+        <span className="heart">🖤</span>
         {BRIDE_FULLNAME}
       </div>
       <div className="info">{WEDDING_DATE.format(WEDDING_DATE_FORMAT)}</div>
