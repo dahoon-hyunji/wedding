@@ -23,13 +23,13 @@ export const Gallery = () => {
 
   const scrollToIndex = useCallback(
     (index: number, behavior: ScrollBehavior = "instant") => {
+      const el = scrollRef.current
       const children = getItemElements()
-      if (!children[index]) return
-      children[index].scrollIntoView({
-        behavior,
-        block: "nearest",
-        inline: "center",
-      })
+      if (!el || !children[index]) return
+      const child = children[index]
+      const targetScroll =
+        child.offsetLeft - (el.clientWidth - child.offsetWidth) / 2
+      el.scrollTo({ left: targetScroll, behavior })
     },
     [getItemElements],
   )
