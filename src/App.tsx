@@ -10,27 +10,7 @@ import { LazyDiv } from "./component/lazyDiv"
 import { ShareButton } from "./component/shareButton"
 import { BGM } from "./component/bgm"
 
-import { useState } from "react"
-
-// 준비 중 페이지 활성화 여부. 작업 완료 후 false로 변경.
-const UNDER_CONSTRUCTION = true
-
 function App() {
-  const [bypass, setBypass] = useState(false)
-
-  if (UNDER_CONSTRUCTION && !bypass) {
-    return (
-      <div className="background">
-        <BGEffect />
-        <div className="under-construction">
-          <div className="spinner" />
-          <p>열심히 만들고 있어요</p>
-          <button className="bypass" onClick={() => setBypass(true)} />
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="background">
       <BGEffect />

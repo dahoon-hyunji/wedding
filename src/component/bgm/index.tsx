@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react"
-import bgmUrl from "../../music/bgm.mp3"
+import bgmUrl from "../../music/bgm.opus"
 
 export const BGM = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null)
