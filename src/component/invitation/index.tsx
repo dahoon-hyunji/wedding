@@ -21,6 +21,7 @@ export const Invitation = () => {
   const { openModal, closeModal } = useModal()
   return (
     <LazyDiv className="card invitation">
+      <br></br>
       <h2 className="english">Invitation</h2>
 
       <div className="content">싱그러운 여름 향기 가득한 날</div>
@@ -36,6 +37,7 @@ export const Invitation = () => {
 
       <div className="break" />
       <div className="break" />
+      <br></br>
 
       <div className="name">
         {GROOM_FATHER} · {GROOM_MOTHER}
