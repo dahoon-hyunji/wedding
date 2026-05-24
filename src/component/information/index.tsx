@@ -26,13 +26,9 @@ export const Information2 = () => {
     <>
       <div className="info-card">
         <div className="label">마음 전하기</div>
-        <div className="content">
-          참석이 어려우신 분들을 위해 기재했습니다.
-          <br />
-          너그러운 마음으로 양해 부탁드립니다.
-        </div>
-
         <div className="break" />
+
+
 
         <Button
           style={{ width: "100%" }}
